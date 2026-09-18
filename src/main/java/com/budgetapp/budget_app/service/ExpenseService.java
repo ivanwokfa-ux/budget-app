@@ -137,4 +137,8 @@ public class ExpenseService {
                 "message", message
         );
     }
+    // Récupérer toutes les dépenses (admin seulement)
+    public List<Expense> getAllExpenses() {
+        return expenseRepository.findAll();
+    }
 }
