@@ -25,6 +25,7 @@ public class SecurityConfig {
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/", "/index.html", "/**.html", "/**.css", "/**.js").permitAll()
                         .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/admin/register").permitAll()
                         .anyRequest().authenticated()
