@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Budget App</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #f0f2f5; color: #333; }
+        .container { max-width: 900px; margin: 0 auto; padding: 20px; }
+        h1 { text-align: center; color: #2c3e50; margin-bottom: 30px; font-size: 2em; }
+        .card { background: white; border-radius: 12px; padding: 25px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); }
+        h2 { color: #2c3e50; margin-bottom: 15px; font-size: 1.2em; }
+        input { width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; }
+        button { width: 100%; padding: 12px; background: #3498db; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 15px; margin-top: 8px; }
+        button:hover { background: #2980b9; }
+        .btn-green { background: #27ae60; }
+        .btn-green:hover { background: #229954; }
+        .btn-red { background: #e74c3c; }
+        .btn-red:hover { background: #c0392b; }
+        .message { padding: 10px; border-radius: 8px; margin-top: 10px; text-align: center; font-weight: bold; }
+        .success { background: #d5f5e3; color: #27ae60; }
+        .error { background: #fadbd8; color: #e74c3c; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th { background: #3498db; color: white; padding: 10px; text-align: left; }
+        td { padding: 10px; border-bottom: 1px solid #eee; }
+        tr:hover { background: #f8f9fa; }
+        .hidden { display: none; }
+        .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+        .stat-card { background: #3498db; color: white; padding: 20px; border-radius: 10px; text-align: center; }
+        .stat-card h3 { font-size: 1.8em; }
+        .stat-card p { font-size: 0.9em; opacity: 0.9; }
+        .badge { padding: 3px 8px; border-radius: 12px; font-size: 12px; font-weight: bold; }
+        .badge-green { background: #d5f5e3; color: #27ae60; }
+        .badge-blue { background: #d6eaf8; color: #2980b9; }
+        .badge-orange { background: #fdebd0; color: #e67e22; }
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+        .tab { padding: 10px 20px; border-radius: 8px; cursor: pointer; background: #ddd; border: none; font-size: 14px; }
+        .tab.active { background: #3498db; color: white; }
+        #userInfo { background: #2c3e50; color: white; padding: 15px 25px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>💰 Budget App</h1>
+
+    <!-- Auth Section -->
+    <div id="authSection">
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('login')">Connexion</button>
+            <button class="tab" onclick="showTab('register')">Inscription</button>
+        </div>
+
+        <div id="loginTab" class="card">
+            <h2>🔐 Connexion</h2>
+            <input type="email" id="loginEmail" placeholder="Email"/>
+            <input type="password" id="loginPassword" placeholder="Mot de passe"/>
+            <button onclick="login()">Se connecter</button>
+            <div id="loginMsg"></div>
+        </div>
+
+        <div id="registerTab" class="card hidden">
+            <h2>📝 Inscription</h2>
+            <input type="email" id="registerEmail" placeholder="Email"/>
+            <input type="password" id="registerPassword" placeholder="Mot de passe"/>
+            <button class="btn-green" onclick="register()">S'inscrire</button>
+            <div id="registerMsg"></div>
+        </div>
+    </div>
+
+    <!-- App Section (après connexion) -->
+    <div id="appSection" class="hidden">
+        <div id="userInfo">
+            <span id="userEmail">👤 ivan@gmail.com</span>
+            <button class="btn-red" style="width:auto;padding:8px 15px" onclick="logout()">Déconnexion</button>
+        </div>
+
+        <!-- Stats -->
+        <div class="card">
+            <h2>📊 Résumé du mois</h2>
+            <div class="stats">
+                <div class="stat-card">
+                    <h3 id="totalMonth">0€</h3>
+                    <p>Total ce mois</p>
+                </div>
+                <div class="stat-card" style="background:#27ae60">
+                    <h3 id="nbExpenses">0</h3>
+                    <p>Dépenses</p>
+                </div>
+                <div class="stat-card" style="background:#e67e22">
+                    <h3 id="topCategory">-</h3>
+                    <p>Top catégorie</p>
+                </div>
+            </div>
+            <div style="margin-top:15px">
+                <input type="number" id="budgetInput" placeholder="Mon budget mensuel (€)" style="width:70%;display:inline-block"/>
+                <button onclick="checkBudget()" style="width:28%;display:inline-block;margin-left:2%">Vérifier</button>
+            </div>
+            <div id="alertMsg"></div>
+        </div>
+
+        <!-- Ajouter dépense -->
+        <div class="card">
+            <h2>➕ Ajouter une dépense</h2>
+            <input type="number" id="amount" placeholder="Montant (€)" step="0.01"/>
+            <input type="text" id="description" placeholder="Description (ex: Carrefour, Uber...)"/>
+            <input type="date" id="date"/>
+            <button class="btn-green" onclick="addExpense()">Ajouter</button>
+            <div id="expenseMsg"></div>
+        </div>
+
+        <!-- Liste dépenses -->
+        <div class="card">
+            <h2>📋 Mes dépenses</h2>
+            <button onclick="loadExpenses()" style="width:auto;padding:8px 15px;margin-bottom:10px">🔄 Actualiser</button>
+            <table>
+                <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Description</th>
+                    <th>Catégorie</th>
+                    <th>Montant</th>
+                </tr>
+                </thead>
+                <tbody id="expensesTable"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    const API = 'http://localhost:8080';
+    let token = localStorage.getItem('token');
+    let userEmail = localStorage.getItem('userEmail');
+
+    if (token) showApp();
+
+    function showTab(tab) {
+        document.getElementById('loginTab').classList.toggle('hidden', tab !== 'login');
+        document.getElementById('registerTab').classList.toggle('hidden', tab !== 'register');
+        document.querySelectorAll('.tab').forEach((t, i) => {
+            t.classList.toggle('active', (i === 0 && tab === 'login') || (i === 1 && tab === 'register'));
+        });
+    }
+
+    function showMsg(id, msg, isError) {
+        const el = document.getElementById(id);
+        el.className = 'message ' + (isError ? 'error' : 'success');
+        el.textContent = msg;
+    }
+
+    async function login() {
+        const email = document.getElementById('loginEmail').value;
+        const password = document.getElementById('loginPassword').value;
+        try {
+            const res = await fetch(API + '/auth/login', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({email, password})
+            });
+            const data = await res.json();
+            if (data.token) {
+                token = data.token;
+                userEmail = email;
+                localStorage.setItem('token', token);
+                localStorage.setItem('userEmail', email);
+                showApp();
+            } else {
+                showMsg('loginMsg', 'Email ou mot de passe incorrect', true);
+            }
+        } catch(e) {
+            showMsg('loginMsg', 'Erreur de connexion', true);
+        }
+    }
+
+    async function register() {
+        const email = document.getElementById('registerEmail').value;
+        const password = document.getElementById('registerPassword').value;
+        try {
+            const res = await fetch(API + '/auth/register', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({email, password})
+            });
+            const text = await res.text();
+            if (res.ok) {
+                showMsg('registerMsg', text, false);
+            } else {
+                showMsg('registerMsg', text, true);
+            }
+        } catch(e) {
+            showMsg('registerMsg', 'Erreur', true);
+        }
+    }
+
+    function showApp() {
+        document.getElementById('authSection').classList.add('hidden');
+        document.getElementById('appSection').classList.remove('hidden');
+        document.getElementById('userEmail').textContent = '👤 ' + userEmail;
+        document.getElementById('date').valueAsDate = new Date();
+        loadExpenses();
+        loadSummary();
+    }
+
+    function logout() {
+        localStorage.removeItem('token');
+        localStorage.removeItem('userEmail');
+        token = null;
+        document.getElementById('authSection').classList.remove('hidden');
+        document.getElementById('appSection').classList.add('hidden');
+    }
+
+    async function loadExpenses() {
+        try {
+            const res = await fetch(API + '/expenses', {
+                headers: {'Authorization': 'Bearer ' + token}
+            });
+            const expenses = await res.json();
+            const tbody = document.getElementById('expensesTable');
+            tbody.innerHTML = '';
+            expenses.forEach(e => {
+                const badge = e.category === 'Alimentation' ? 'badge-green' :
+                              e.category === 'Transport' ? 'badge-blue' : 'badge-orange';
+                tbody.innerHTML += `<tr>
+                    <td>${e.date}</td>
+                    <td>${e.description}</td>
+                    <td><span class="badge ${badge}">${e.category}</span></td>
+                    <td><strong>${e.amount}€</strong></td>
+                </tr>`;
+            });
+        } catch(e) { console.error(e); }
+    }
+
+    async function loadSummary() {
+        try {
+            const res = await fetch(API + '/expenses/summary', {
+                headers: {'Authorization': 'Bearer ' + token}
+            });
+            const data = await res.json();
+            document.getElementById('totalMonth').textContent = data.total + '€';
+            document.getElementById('nbExpenses').textContent = data.nombreDepenses;
+            document.getElementById('topCategory').textContent = data.categorieTopDepense;
+        } catch(e) { console.error(e); }
+    }
+
+    async function addExpense() {
+        const amount = document.getElementById('amount').value;
+        const description = document.getElementById('description').value;
+        const date = document.getElementById('date').value;
+        try {
+            const res = await fetch(API + '/expenses', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token
+                },
+                body: JSON.stringify({amount, description, date})
+            });
+            if (res.ok) {
+                showMsg('expenseMsg', 'Dépense ajoutée !', false);
+                loadExpenses();
+                loadSummary();
+                document.getElementById('amount').value = '';
+                document.getElementById('description').value = '';
+            }
+        } catch(e) { showMsg('expenseMsg', 'Erreur', true); }
+    }
+
+    async function checkBudget() {
+        const budget = document.getElementById('budgetInput').value;
+        try {
+            const res = await fetch(API + '/expenses/alert?budget=' + budget, {
+                headers: {'Authorization': 'Bearer ' + token}
+            });
+            const data = await res.json();
+            showMsg('alertMsg', data.message, data.vaDepasser);
+        } catch(e) { console.error(e); }
+    }
+</script>
+</body>
+</html>
