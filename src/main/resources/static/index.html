@@ -126,10 +126,44 @@
             </table>
         </div>
     </div>
+    <!-- Section Admin -->
+    <div id="adminSection" class="hidden">
+        <div class="card">
+            <h2>👑 Panel Admin</h2>
+
+            <h3 style="margin:15px 0 10px;color:#2c3e50">👥 Tous les utilisateurs</h3>
+            <button onclick="loadAllUsers()" style="width:auto;padding:8px 15px;margin-bottom:10px">🔄 Charger</button>
+            <table>
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Email</th>
+                    <th>Rôle</th>
+                </tr>
+                </thead>
+                <tbody id="usersTable"></tbody>
+            </table>
+
+            <h3 style="margin:20px 0 10px;color:#2c3e50">💸 Toutes les dépenses</h3>
+            <button onclick="loadAllExpenses()" style="width:auto;padding:8px 15px;margin-bottom:10px">🔄 Charger</button>
+            <table>
+                <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Description</th>
+                    <th>Catégorie</th>
+                    <th>Montant</th>
+                    <th>Date</th>
+                </tr>
+                </thead>
+                <tbody id="allExpensesTable"></tbody>
+            </table>
+        </div>
+    </div>
 </div>
 
 <script>
-    const API = 'https://budget-app-0f45.onrender.com'; 
+    const API = 'https://budget-app-0f45.onrender.com';
     let token = localStorage.getItem('token');
     let userEmail = localStorage.getItem('userEmail');
 
@@ -200,6 +234,7 @@
         document.getElementById('date').valueAsDate = new Date();
         loadExpenses();
         loadSummary();
+        checkAdmin(); 
     }
 
     function logout() {
@@ -276,6 +311,60 @@
             showMsg('alertMsg', data.message, data.vaDepasser);
         } catch(e) { console.error(e); }
     }
+    // Vérifier si admin et afficher le panel
+async function checkAdmin() {
+    try {
+        const res = await fetch(API + '/admin/users', {
+            headers: {'Authorization': 'Bearer ' + token}
+        });
+        if (res.ok) {
+            document.getElementById('adminSection').classList.remove('hidden');
+        }
+    } catch(e) { console.error(e); }
+}
+
+// Charger tous les utilisateurs
+async function loadAllUsers() {
+    try {
+        const res = await fetch(API + '/admin/users', {
+            headers: {'Authorization': 'Bearer ' + token}
+        });
+        const users = await res.json();
+        const tbody = document.getElementById('usersTable');
+        tbody.innerHTML = '';
+        users.forEach(u => {
+            const badge = u.role === 'ADMIN' ? 'badge-orange' : 'badge-blue';
+            tbody.innerHTML += `<tr>
+                <td>${u.id}</td>
+                <td>${u.email}</td>
+                <td><span class="badge ${badge}">${u.role}</span></td>
+            </tr>`;
+        });
+    } catch(e) { console.error(e); }
+}
+
+// Charger toutes les dépenses
+async function loadAllExpenses() {
+    try {
+        const res = await fetch(API + '/admin/expenses', {
+            headers: {'Authorization': 'Bearer ' + token}
+        });
+        const expenses = await res.json();
+        const tbody = document.getElementById('allExpensesTable');
+        tbody.innerHTML = '';
+        expenses.forEach(e => {
+            const badge = e.category === 'Alimentation' ? 'badge-green' :
+                          e.category === 'Transport' ? 'badge-blue' : 'badge-orange';
+            tbody.innerHTML += `<tr>
+                <td>${e.user.email}</td>
+                <td>${e.description}</td>
+                <td><span class="badge ${badge}">${e.category}</span></td>
+                <td><strong>${e.amount}€</strong></td>
+                <td>${e.date}</td>
+            </tr>`;
+        });
+    } catch(e) { console.error(e); }
+}
 </script>
 </body>
 </html>
